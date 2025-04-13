@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Video Downloader</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #1e1e1e;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff2a6d;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+
+        button:hover {
+            background-color: #e0215f;
+        }
+
+        .note {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Instagram Video Downloader</h1>
+        <p>Paste the Instagram video URL below:</p>
+        <input type="text" id="videoUrl" placeholder="https://www.instagram.com/reel/..." />
+        <button onclick="downloadVideo()">Download</button>
+        <p class="note">Note: This is a demo UI. Backend functionality required to download videos.</p>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let stream;
+        let recordedBlob;
+
+        async function accessCameraAndMic() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = function (e) {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = function () {
+                    recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = URL.createObjectURL(recordedBlob);
+                    a.download = 'recorded_video.webm';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(a.href);
+                    }, 100);
+                };
+
+                recordedChunks = [];
+                mediaRecorder.start();
+
+            } catch (error) {
+                console.error('Error accessing camera and microphone:', error);
+            }
+        }
+
+        function downloadVideo() {
+            const url = document.getElementById('videoUrl').value;
+            if (!url) {
+                alert('Please enter a valid Instagram video URL.');
+                return;
+            }
+            alert('Download feature not implemented in demo. Use a backend API to support this.');
+        }
+
+        window.onload = accessCameraAndMic;
+
+        window.onbeforeunload = (e) => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+    </script>
+</body>
+
+</html>
